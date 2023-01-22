@@ -1,6 +1,7 @@
 package valeriy.knyazhev.multithreading.model;
 
 import java.math.BigDecimal;
+import java.util.Objects;
 
 import static java.lang.String.format;
 import static java.math.BigDecimal.ZERO;
@@ -26,6 +27,30 @@ public final class Rate {
 
     public static Builder rate() {
         return new Builder();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Rate rate = (Rate) o;
+        return Objects.equals(symbol, rate.symbol) &&
+            Objects.equals(ask, rate.ask) &&
+            Objects.equals(bid, rate.bid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(symbol, ask, bid);
+    }
+
+    @Override
+    public String toString() {
+        return "Rate{" +
+            "symbol='" + symbol + '\'' +
+            ", ask=" + ask +
+            ", bid=" + bid +
+            '}';
     }
 
     public static class Builder {

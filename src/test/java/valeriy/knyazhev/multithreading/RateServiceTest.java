@@ -9,7 +9,11 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static valeriy.knyazhev.multithreading.model.Rate.rate;
 
 /**
@@ -29,15 +33,16 @@ public class RateServiceTest {
         .bid(new BigDecimal("1.202"))
         .build();
 
-    private final RateProvider firstRateProvider = mock(RateProvider.class);
-    private final RateProvider secondRateProvider = mock(RateProvider.class);
+    private final List<RateProvider> providers = List.of(
+        mock(RateProvider.class), mock(RateProvider.class)
+    );
+    private final RatesCollector collector = mock(RatesCollector.class);
 
-    private final RateService service = new RateService(List.of(firstRateProvider, secondRateProvider));
+    private final RateService service = new RateService(providers, collector);
 
     @BeforeEach
     public void setup() {
-        when(firstRateProvider.rateFor(SYMBOL)).thenReturn(RATE_1);
-        when(secondRateProvider.rateFor(SYMBOL)).thenReturn(RATE_2);
+        when(collector.collectRates(SYMBOL, providers)).thenReturn(List.of(RATE_1, RATE_2));
     }
 
     @Test
@@ -55,8 +60,7 @@ public class RateServiceTest {
         );
 
         // and
-        verify(firstRateProvider).rateFor(SYMBOL);
-        verify(secondRateProvider).rateFor(SYMBOL);
+        verify(collector).collectRates(eq(SYMBOL), any());
     }
 
 }

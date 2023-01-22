@@ -5,9 +5,12 @@ import valeriy.knyazhev.multithreading.service.RateProvider;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.naturalOrder;
+import static java.util.Objects.requireNonNull;
 import static java.util.Optional.empty;
 import static valeriy.knyazhev.multithreading.model.Rate.rate;
 
@@ -17,15 +20,15 @@ import static valeriy.knyazhev.multithreading.model.Rate.rate;
 public class RateService {
 
     private final List<RateProvider> providers;
+    private final RatesCollector collector;
 
-    public RateService(List<RateProvider> providers) {
+    public RateService(List<RateProvider> providers, RatesCollector collector) {
         this.providers = requireNonEmpty(providers);
+        this.collector = requireNonNull(collector);
     }
 
     public Optional<Rate> bestRateFor(String symbol) {
-        final var rates = providers.stream()
-            .map(provider -> provider.rateFor(symbol))
-            .collect(Collectors.toList());
+        final var rates = this.collector.collectRates(symbol, this.providers);
 
         if (rates.isEmpty()) {
             return empty();

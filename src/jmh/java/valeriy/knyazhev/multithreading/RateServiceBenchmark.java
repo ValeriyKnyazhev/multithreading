@@ -7,13 +7,14 @@ import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
-import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import valeriy.knyazhev.multithreading.behaviour.SequentialRatesCollector;
 import valeriy.knyazhev.multithreading.model.Rate;
+import valeriy.knyazhev.multithreading.service.DelayGenerator;
 import valeriy.knyazhev.multithreading.service.RateProvider;
 import valeriy.knyazhev.multithreading.service.TestRateProvider;
 import valeriy.knyazhev.multithreading.service.behaviour.RandomDelayGenerator;
@@ -33,8 +34,8 @@ import static valeriy.knyazhev.multithreading.model.Rate.rate;
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1)
-@Measurement(iterations = 10, time = 10)
-@Warmup(iterations = 3, time = 10)
+@Measurement(iterations = 8, time = 10)
+@Warmup(iterations = 2, time = 10)
 public class RateServiceBenchmark {
 
     private static final String SYMBOL = "GBPUSD";
@@ -45,18 +46,21 @@ public class RateServiceBenchmark {
     private static final Duration MIN_DELAY = Duration.of(1, ChronoUnit.MILLIS);
     private static final Duration MAX_DELAY = Duration.of(5, ChronoUnit.MILLIS);
 
-    private RateService rateService;
+    static final DelayGenerator DELAY_GENERATOR = new RandomDelayGenerator(MIN_DELAY, MAX_DELAY);
+    static final List<RateProvider> PROVIDERS = List.of(
+        new TestRateProvider(RATE, DELAY_GENERATOR),
+        new TestRateProvider(RATE, DELAY_GENERATOR),
+        new TestRateProvider(RATE, DELAY_GENERATOR),
+        new TestRateProvider(RATE, DELAY_GENERATOR)
+    );
 
-    @Setup
-    public void setup() {
-        final var delayGenerator = new RandomDelayGenerator(MIN_DELAY, MAX_DELAY);
-        final List<RateProvider> providers = List.of(
-            new TestRateProvider(RATE, delayGenerator),
-            new TestRateProvider(RATE, delayGenerator),
-            new TestRateProvider(RATE, delayGenerator),
-            new TestRateProvider(RATE, delayGenerator)
+    @State(Scope.Benchmark)
+    public static class SequentialExecutionState {
+
+        public RateService service = new RateService(
+            PROVIDERS, new SequentialRatesCollector()
         );
-        rateService = new RateService(providers);
+
     }
 
     public static void main(String[] args) throws Exception {
@@ -68,8 +72,8 @@ public class RateServiceBenchmark {
     }
 
     @Benchmark
-    public void fetch_best_rates() {
-        rateService.bestRateFor(SYMBOL);
+    public void fetch_best_rate_in_sequential_mode(SequentialExecutionState execution) {
+        execution.service.bestRateFor(SYMBOL);
     }
 
 }

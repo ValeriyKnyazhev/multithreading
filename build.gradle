@@ -10,6 +10,8 @@ repositories {
 }
 
 dependencies {
+    implementation "com.google.guava:guava:$guavaVersion"
+
     testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
     testImplementation "org.assertj:assertj-core:$assertJVersion"
     testImplementation "org.mockito:mockito-core:$mockitoVersion"

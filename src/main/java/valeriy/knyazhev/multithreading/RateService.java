@@ -38,16 +38,12 @@ public class RateService {
             .map(rate -> rate.bid)
             .max(naturalOrder())
             .get();
-        final var latestRateAt = rates.stream()
-            .map(rate -> rate.timestamp)
-            .max(naturalOrder())
-            .get();
         return Optional.of(
             rate()
                 .symbol(symbol)
                 .ask(bestAsk)
                 .bid(bestBid)
-                .at(latestRateAt)
+                .build()
         );
     }
 

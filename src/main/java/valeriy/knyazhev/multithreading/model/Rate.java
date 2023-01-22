@@ -1,7 +1,6 @@
 package valeriy.knyazhev.multithreading.model;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 
 import static java.lang.String.format;
 import static java.math.BigDecimal.ZERO;
@@ -15,16 +14,14 @@ public final class Rate {
     public final String symbol;
     public final BigDecimal ask;
     public final BigDecimal bid;
-    public final Instant timestamp;
 
-    private Rate(String symbol, BigDecimal ask, BigDecimal bid, Instant timestamp) {
+    private Rate(String symbol, BigDecimal ask, BigDecimal bid) {
         this.symbol = requireNonNull(symbol);
         if (ask.compareTo(bid) < 0) {
             throw new IllegalArgumentException("ask must be greater or equal to bid");
         }
         this.ask = requirePositive("ask", ask);
         this.bid = requirePositive("bid", bid);
-        this.timestamp = requireNonNull(timestamp);
     }
 
     public static Builder rate() {
@@ -51,8 +48,8 @@ public final class Rate {
             return this;
         }
 
-        public Rate at(Instant timestamp) {
-            return new Rate(symbol, ask, bid, timestamp);
+        public Rate build() {
+            return new Rate(symbol, ask, bid);
         }
     }
 

@@ -13,6 +13,8 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import valeriy.knyazhev.multithreading.behaviour.SequentialRatesCollector;
+import valeriy.knyazhev.multithreading.behaviour.ThreadsWithCountDownLatchRatesCollector;
+import valeriy.knyazhev.multithreading.behaviour.ThreadsWithJoinRatesCollector;
 import valeriy.knyazhev.multithreading.model.Rate;
 import valeriy.knyazhev.multithreading.service.DelayGenerator;
 import valeriy.knyazhev.multithreading.service.RateProvider;
@@ -34,7 +36,7 @@ import static valeriy.knyazhev.multithreading.model.Rate.rate;
 @BenchmarkMode(Mode.Throughput)
 @OutputTimeUnit(TimeUnit.SECONDS)
 @Fork(value = 1)
-@Measurement(iterations = 8, time = 10)
+@Measurement(iterations = 6, time = 10)
 @Warmup(iterations = 2, time = 10)
 public class RateServiceBenchmark {
 
@@ -63,6 +65,24 @@ public class RateServiceBenchmark {
 
     }
 
+    @State(Scope.Benchmark)
+    public static class ThreadsWithJoinExecutionState {
+
+        public RateService service = new RateService(
+            PROVIDERS, new ThreadsWithJoinRatesCollector()
+        );
+
+    }
+
+    @State(Scope.Benchmark)
+    public static class ThreadsWithCountDownLatchExecutionState {
+
+        public RateService service = new RateService(
+            PROVIDERS, new ThreadsWithCountDownLatchRatesCollector()
+        );
+
+    }
+
     public static void main(String[] args) throws Exception {
         Options opt = new OptionsBuilder()
             .include(RateServiceBenchmark.class.getSimpleName())
@@ -73,6 +93,16 @@ public class RateServiceBenchmark {
 
     @Benchmark
     public void fetch_best_rate_in_sequential_mode(SequentialExecutionState execution) {
+        execution.service.bestRateFor(SYMBOL);
+    }
+
+    @Benchmark
+    public void fetch_best_rate_in_threads_with_join_mode(ThreadsWithJoinExecutionState execution) {
+        execution.service.bestRateFor(SYMBOL);
+    }
+
+    @Benchmark
+    public void fetch_best_rate_in_threads_with_count_down_latch_mode(ThreadsWithCountDownLatchExecutionState execution) {
         execution.service.bestRateFor(SYMBOL);
     }
 

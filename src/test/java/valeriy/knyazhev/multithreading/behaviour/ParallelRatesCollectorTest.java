@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.stubbing.Answer;
 import valeriy.knyazhev.multithreading.RatesCollector;
 import valeriy.knyazhev.multithreading.model.Rate;
 import valeriy.knyazhev.multithreading.service.RateProvider;
@@ -12,6 +13,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
+import static java.time.Duration.ofSeconds;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -53,6 +56,27 @@ public class ParallelRatesCollectorTest {
         // then
         assertThat(result).isNotEmpty();
         assertThat(result).containsExactlyInAnyOrder(RATE_1, RATE_2);
+
+        // and
+        verify(firstProvider).rateFor(SYMBOL);
+        verify(secondProvider).rateFor(SYMBOL);
+    }
+
+    @ParameterizedTest
+    @MethodSource("parallelCollectorImplementations")
+    public void should_not_collect_rates_from_timed_out_providers(RatesCollector collector) {
+        // given
+        when(firstProvider.rateFor(SYMBOL)).thenAnswer((Answer<Rate>) invocation -> {
+            sleepUninterruptibly(ofSeconds(1));
+            return RATE_1;
+        });
+
+        // when
+        var result = collector.collectRates(SYMBOL, List.of(firstProvider, secondProvider));
+
+        // then
+        assertThat(result).isNotEmpty();
+        assertThat(result).containsOnly(RATE_2);
 
         // and
         verify(firstProvider).rateFor(SYMBOL);

@@ -4,15 +4,24 @@ import valeriy.knyazhev.multithreading.RatesCollector;
 import valeriy.knyazhev.multithreading.model.Rate;
 import valeriy.knyazhev.multithreading.service.RateProvider;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * @author Valeriy Knyazhev
  */
 public class ThreadsWithJoinRatesCollector implements RatesCollector {
+
+    private final Duration waitTime;
+
+    public ThreadsWithJoinRatesCollector(Duration waitTime) {
+        this.waitTime = requireNonNull(waitTime);
+    }
 
     public Collection<Rate> collectRates(String symbol, List<RateProvider> providers) {
         final var rates = new ConcurrentLinkedQueue<Rate>();
@@ -22,7 +31,7 @@ public class ThreadsWithJoinRatesCollector implements RatesCollector {
         threads.forEach(Thread::start);
         threads.forEach(thread -> {
             try {
-                thread.join();
+                thread.join(this.waitTime.toMillis());
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
             }

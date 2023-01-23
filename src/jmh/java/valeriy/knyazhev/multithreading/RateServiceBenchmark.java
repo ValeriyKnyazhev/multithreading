@@ -47,6 +47,7 @@ public class RateServiceBenchmark {
         .build();
     private static final Duration MIN_DELAY = Duration.of(1, ChronoUnit.MILLIS);
     private static final Duration MAX_DELAY = Duration.of(5, ChronoUnit.MILLIS);
+    private static final Duration WAIT_TIME = Duration.ofMillis(100);
 
     static final DelayGenerator DELAY_GENERATOR = new RandomDelayGenerator(MIN_DELAY, MAX_DELAY);
     static final List<RateProvider> PROVIDERS = List.of(
@@ -69,7 +70,7 @@ public class RateServiceBenchmark {
     public static class ThreadsWithJoinExecutionState {
 
         public RateService service = new RateService(
-            PROVIDERS, new ThreadsWithJoinRatesCollector()
+            PROVIDERS, new ThreadsWithJoinRatesCollector(WAIT_TIME)
         );
 
     }
@@ -78,7 +79,7 @@ public class RateServiceBenchmark {
     public static class ThreadsWithCountDownLatchExecutionState {
 
         public RateService service = new RateService(
-            PROVIDERS, new ThreadsWithCountDownLatchRatesCollector()
+            PROVIDERS, new ThreadsWithCountDownLatchRatesCollector(WAIT_TIME)
         );
 
     }

@@ -33,7 +33,7 @@ public class TestRateProvider implements RateProvider {
 
     @Override
     public Rate rateFor(String symbol) {
-        sleepUninterruptibly(delayGenerator.newDelay());
+        busySleep(delayGenerator.newDelay().toNanos());
 
         return this.generatedRates[counter.getAndIncrement() % NUMBER_OF_GENERATED_RATES];
     }
@@ -46,6 +46,11 @@ public class TestRateProvider implements RateProvider {
             .ask(ask)
             .bid(bid)
             .build();
+    }
+
+    private static void busySleep(long periodInNanos) {
+        final long endTime = System.nanoTime() + periodInNanos;
+        while(System.nanoTime() - endTime < 0);
     }
 
 }

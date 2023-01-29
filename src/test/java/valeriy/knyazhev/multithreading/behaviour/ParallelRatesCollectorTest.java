@@ -91,7 +91,8 @@ public class ParallelRatesCollectorTest {
         return Stream.of(
             Arguments.of(new ThreadsWithJoinRatesCollector(WAIT_TIME)),
             Arguments.of(new ThreadsWithCountDownLatchRatesCollector(WAIT_TIME)),
-            Arguments.of(new ExecutorServiceRatesCollector(EXECUTOR, WAIT_TIME))
+            Arguments.of(new ExecutorServiceRatesCollector(EXECUTOR, WAIT_TIME)),
+            Arguments.of(new ParallelStreamRatesCollector(EXECUTOR, WAIT_TIME))
         );
     }
 

@@ -17,6 +17,7 @@ import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import valeriy.knyazhev.multithreading.behaviour.ExecutorServiceRatesCollector;
+import valeriy.knyazhev.multithreading.behaviour.ParallelStreamRatesCollector;
 import valeriy.knyazhev.multithreading.behaviour.SequentialRatesCollector;
 import valeriy.knyazhev.multithreading.behaviour.ThreadsWithCountDownLatchRatesCollector;
 import valeriy.knyazhev.multithreading.behaviour.ThreadsWithJoinRatesCollector;
@@ -34,6 +35,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.Executors.newFixedThreadPool;
+import static java.util.concurrent.Executors.newWorkStealingPool;
 import static valeriy.knyazhev.multithreading.model.Rate.rate;
 
 /**
@@ -96,6 +98,12 @@ public class RateServiceBenchmark {
         blackhole.consume(execution.service.bestRateFor(SYMBOL));
     }
 
+    @Benchmark
+    public void fetch_best_rate_in_fork_join_pool_parallel_stream_mode(ForkJoinPoolParallelStreamExecutionState execution,
+                                                                       Blackhole blackhole) {
+        blackhole.consume(execution.service.bestRateFor(SYMBOL));
+    }
+
     @State(Scope.Benchmark)
     public static class SequentialExecutionState {
 
@@ -149,6 +157,27 @@ public class RateServiceBenchmark {
             executor = newFixedThreadPool(THREADS_NUM);
             service = new RateService(
                 PROVIDERS, new ExecutorServiceRatesCollector(executor, WAIT_TIME)
+            );
+        }
+
+        @TearDown
+        public void tearDown() {
+            executor.shutdown();
+        }
+
+    }
+
+    @State(Scope.Benchmark)
+    public static class ForkJoinPoolParallelStreamExecutionState {
+
+        ExecutorService executor;
+        RateService service;
+
+        @Setup
+        public void setUp() {
+            executor = newWorkStealingPool(4);
+            service = new RateService(
+                PROVIDERS, new ParallelStreamRatesCollector(executor, WAIT_TIME)
             );
         }
 

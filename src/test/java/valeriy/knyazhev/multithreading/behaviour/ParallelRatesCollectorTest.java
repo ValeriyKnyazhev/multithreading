@@ -92,7 +92,8 @@ public class ParallelRatesCollectorTest {
             Arguments.of(new ThreadsWithJoinRatesCollector(WAIT_TIME)),
             Arguments.of(new ThreadsWithCountDownLatchRatesCollector(WAIT_TIME)),
             Arguments.of(new ExecutorServiceRatesCollector(EXECUTOR, WAIT_TIME)),
-            Arguments.of(new ParallelStreamRatesCollector(EXECUTOR, WAIT_TIME))
+            Arguments.of(new ParallelStreamRatesCollector(EXECUTOR, WAIT_TIME)),
+            Arguments.of(new CompletableFutureRatesCollector(EXECUTOR, WAIT_TIME))
         );
     }
 

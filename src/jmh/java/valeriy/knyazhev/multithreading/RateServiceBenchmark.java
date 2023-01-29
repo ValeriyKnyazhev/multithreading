@@ -16,6 +16,7 @@ import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import valeriy.knyazhev.multithreading.behaviour.CompletableFutureRatesCollector;
 import valeriy.knyazhev.multithreading.behaviour.ExecutorServiceRatesCollector;
 import valeriy.knyazhev.multithreading.behaviour.ParallelStreamRatesCollector;
 import valeriy.knyazhev.multithreading.behaviour.SequentialRatesCollector;
@@ -104,6 +105,12 @@ public class RateServiceBenchmark {
         blackhole.consume(execution.service.bestRateFor(SYMBOL));
     }
 
+    @Benchmark
+    public void fetch_best_rate_in_fixed_thread_pool_completable_future_mode(FixedThreadPoolCompletableFutureExecutionState execution,
+                                                                              Blackhole blackhole) {
+        blackhole.consume(execution.service.bestRateFor(SYMBOL));
+    }
+
     @State(Scope.Benchmark)
     public static class SequentialExecutionState {
 
@@ -188,5 +195,25 @@ public class RateServiceBenchmark {
 
     }
 
+    @State(Scope.Benchmark)
+    public static class FixedThreadPoolCompletableFutureExecutionState {
+
+        ExecutorService executor;
+        RateService service;
+
+        @Setup
+        public void setUp() {
+            executor = newFixedThreadPool(4);
+            service = new RateService(
+                PROVIDERS, new CompletableFutureRatesCollector(executor, WAIT_TIME)
+            );
+        }
+
+        @TearDown
+        public void tearDown() {
+            executor.shutdown();
+        }
+
+    }
 
 }

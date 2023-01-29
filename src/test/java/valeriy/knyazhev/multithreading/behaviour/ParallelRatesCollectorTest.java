@@ -12,9 +12,11 @@ import valeriy.knyazhev.multithreading.service.RateProvider;
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 import static com.google.common.util.concurrent.Uninterruptibles.sleepUninterruptibly;
+import static java.util.concurrent.Executors.newFixedThreadPool;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -27,6 +29,7 @@ import static valeriy.knyazhev.multithreading.model.Rate.rate;
 public class ParallelRatesCollectorTest {
 
     private static final String SYMBOL = "GBPUSD";
+    private static final ExecutorService EXECUTOR = newFixedThreadPool(2);
     private static final Duration WAIT_TIME = Duration.ofMillis(500);
     private static final Rate RATE_1 = rate()
         .symbol(SYMBOL)
@@ -87,7 +90,8 @@ public class ParallelRatesCollectorTest {
     private static Stream<Arguments> parallelCollectorImplementations() {
         return Stream.of(
             Arguments.of(new ThreadsWithJoinRatesCollector(WAIT_TIME)),
-            Arguments.of(new ThreadsWithCountDownLatchRatesCollector(WAIT_TIME))
+            Arguments.of(new ThreadsWithCountDownLatchRatesCollector(WAIT_TIME)),
+            Arguments.of(new ExecutorServiceRatesCollector(EXECUTOR, WAIT_TIME))
         );
     }
 

@@ -5,9 +5,6 @@ import valeriy.knyazhev.multithreading.service.RateProvider;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.stream.Collectors;
 
 import static java.util.Comparator.naturalOrder;
 import static java.util.Objects.requireNonNull;
